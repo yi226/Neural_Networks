@@ -164,7 +164,6 @@ class MNIST_MLP(object):
         digits = datasets.load_digits()
         train_images, test_images, train_labels, test_labels \
             = train_test_split(digits.data, digits.target, test_size=0.2)
-        # FIXME 查看 image 和 label 的形式
         self.train_data = np.append(train_images, train_labels.reshape(-1, 1), axis=1)
         self.test_data = np.append(test_images, test_labels.reshape(-1, 1), axis=1)
 
@@ -215,7 +214,6 @@ class MNIST_MLP(object):
         for idx_epoch in range(self.max_epoch):
             self.shuffle_data()
             for idx_batch in range(max_batch):
-                # TODO 查看 labels 是否为列向量
                 batch_images = self.train_data[idx_batch * self.batch_size:(idx_batch + 1) * self.batch_size, :-1]
                 batch_labels = self.train_data[idx_batch * self.batch_size:(idx_batch + 1) * self.batch_size, -1]
                 prob = self.forward(batch_images)
