@@ -122,7 +122,7 @@ class SoftmaxWithLoss(object):
         # 计算损失
         self.batch_size = self.prob.shape[0]
         self.label_onehot = np.zeros_like(self.prob)
-        self.label_onehot[np.arange(self.batch_size), label] = 1.0
+        self.label_onehot[np.arange(self.batch_size), label.astype(int)] = 1.0
         loss = -np.sum(np.log(self.prob) * self.label_onehot) / self.batch_size
         return loss
 
@@ -136,8 +136,8 @@ class MNIST_MLP(object):
     """mnist手写数字集多层感知机
     """
 
-    def __init__(self, batch_size=30, input_size=784, hidden1=128, hidden2=64, out_size=10, lr=0.01,
-                 max_epoch=30, print_iter=100):
+    def __init__(self, batch_size=30, input_size=64, hidden1=32, hidden2=16, out_size=10, lr=0.01,
+                 max_epoch=30, print_iter=10):
         """
         参数初始化
 
@@ -165,8 +165,8 @@ class MNIST_MLP(object):
         train_images, test_images, train_labels, test_labels \
             = train_test_split(digits.data, digits.target, test_size=0.2)
         # FIXME 查看 image 和 label 的形式
-        self.train_data = np.append(train_images, train_labels, axis=1)
-        self.test_data = np.append(test_images, test_labels, axis=1)
+        self.train_data = np.append(train_images, train_labels.reshape(-1, 1), axis=1)
+        self.test_data = np.append(test_images, test_labels.reshape(-1, 1), axis=1)
 
     def shuffle_data(self):
         # 打乱数据
@@ -211,7 +211,7 @@ class MNIST_MLP(object):
             layer.update_param(lr)
 
     def train(self):
-        max_batch = self.train_data.shape[0] / self.batch_size
+        max_batch = int(self.train_data.shape[0] / self.batch_size)
         for idx_epoch in range(self.max_epoch):
             self.shuffle_data()
             for idx_batch in range(max_batch):
@@ -225,9 +225,19 @@ class MNIST_MLP(object):
                 if idx_batch % self.print_iter == 0:
                     print('Epoch %d, iter %d, loss: %.6f' % (idx_epoch, idx_batch, loss))
 
+    def evaluate(self):
+        pred_results = np.zeros([self.test_data.shape[0]])
+        for idx in range(int(self.test_data.shape[0] / self.batch_size)):
+            batch_images = self.test_data[idx * self.batch_size:(idx + 1) * self.batch_size, :-1]
+            prob = self.forward(batch_images)
+            pred_labels = np.argmax(prob, axis=1)
+            pred_results[idx * self.batch_size:(idx + 1) * self.batch_size] = pred_labels
+        accuracy = np.mean(pred_results == self.test_data[:, -1])
+        print('Accuracy in test set: %f' % accuracy)
+
 
 def build_mnist_mlp(param_dir='weight.npy'):
-    h1, h2, e = 128, 64, 30
+    h1, h2, e = 256, 128, 1000
     mlp = MNIST_MLP(hidden1=h1, hidden2=h2, max_epoch=e)
     mlp.load_data()
     mlp.build_model()
@@ -239,4 +249,4 @@ def build_mnist_mlp(param_dir='weight.npy'):
 if __name__ == '__main__':
     print(__doc__)
     mlp = build_mnist_mlp()
-
+    mlp.evaluate()
