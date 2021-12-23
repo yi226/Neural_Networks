@@ -272,7 +272,7 @@ class MLP(object):
 
 
 def main():
-    """调用神经网络模型完成mnist数据集上多分类任务
+    """调用神经网络模型完成 mnist 数据集上多分类任务
 
     :return: None
     """
